@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sputnik | Ultra Liquid Radio</title>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.12);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            
+            /* Динамические переменные */
+            --accent: #0077ff; 
+            --accent-glow: rgba(0, 119, 255, 0.3);
+            --blob-1: #0077ff;
+            --blob-2: #6a11cb;
+
+            transition: --accent 1.5s ease, --blob-1 1.5s ease, --blob-2 1.5s ease;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column; /* Изменено для центровки с заголовком */
+            justify-content: center;
+            align-items: center;
+            background: #050508;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* Название сверху */
+        .app-title {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 15px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.15); /* Полупрозрачность */
+            margin-bottom: 20px;
+            pointer-events: none;
+            user-select: none;
+            transition: color 1.5s ease;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Плавные движущиеся сферы на фоне */
+        .bg-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            filter: blur(100px);
+            opacity: 0.6;
+        }
+
+        .blob {
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: var(--blob-1);
+            animation: fluidMove 30s infinite alternate ease-in-out;
+            transition: background 2s ease;
+        }
+
+        .blob-2 {
+            background: var(--blob-2);
+            width: 600px;
+            height: 600px;
+            right: -150px;
+            bottom: -150px;
+            animation-duration: 35s;
+            animation-delay: -10s;
+        }
+
+        @keyframes fluidMove {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(10vw, 15vh) scale(1.1) rotate(180deg); }
+            100% { transform: translate(-5vw, -5vh) scale(0.9) rotate(360deg); }
+        }
+
+        /* Карточка */
+        .player-card {
+            position: relative;
+            width: 340px;
+            padding: 50px 35px;
+            background: var(--glass);
+            backdrop-filter: blur(50px) saturate(180%);
+            -webkit-backdrop-filter: blur(50px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 60px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .logo-area h1 {
+            font-size: 1.7rem;
+            margin: 0 0 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        #status-text {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 30px;
+            font-weight: 800;
+            transition: color 1.5s ease;
+        }
+
+        /* Визуализатор */
+        .visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            height: 40px;
+            margin-bottom: 35px;
+        }
+
+        .bar {
+            width: 5px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 10px;
+            transition: background 1.5s ease, height 0.3s ease;
+        }
+
+        .playing .bar {
+            animation: bounce 0.6s infinite alternate ease-in-out;
+        }
+
+        @keyframes bounce {
+            from { height: 6px; opacity: 0.6; }
+            to { height: 35px; opacity: 1; box-shadow: 0 0 15px var(--accent); }
+        }
+
+        /* Кнопка Play */
+        .play-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 40px;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .play-btn:hover { transform: scale(1.1); }
+        .play-btn svg { width: 34px; height: 34px; fill: #000; }
+
+        /* Выпадающий список */
+        .station-selector {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 14px;
+            border-radius: 20px;
+            width: 100%;
+            margin-bottom: 30px;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            appearance: none;
+            text-align: center;
+        }
+
+        .station-selector option {
+            background-color: #1a1a1f;
+            color: white;
+            padding: 10px;
+        }
+
+        /* Громкость */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.1);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-wrapper">
+        <div class="blob"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-title" id="main-title">Спутник</div>
+
+    <div class="player-card">
+        <div class="logo-area">
+            <h1 id="station-name">Радио Рекорд</h1>
+        </div>
+
+        <div id="status-text">Готов к эфиру</div>
+
+        <div class="visualizer" id="viz">
+            <div class="bar" style="animation-delay: 0.0s"></div>
+            <div class="bar" style="animation-delay: 0.2s"></div>
+            <div class="bar" style="animation-delay: 0.4s"></div>
+            <div class="bar" style="animation-delay: 0.1s"></div>
+            <div class="bar" style="animation-delay: 0.3s"></div>
+            <div class="bar" style="animation-delay: 0.5s"></div>
+        </div>
+
+        <button class="play-btn" onclick="togglePlay()" id="master-btn">
+            <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+
+        <select class="station-selector" id="station-select" onchange="changeStation()">
+            <option value="https://radiorecord.hostingradio.ru/rr_main96.aacp">Радио Рекорд</option>
+            <option value="https://rusradio.hostingradio.ru/rusradio96.aacp">Русское Радио</option>
+            <option value="https://stream.newradio.ru/novoe96.aacp">Новое Радио</option>
+            <option value="https://icecast-lounge.cdnvideo.ru/lounge_128">Record Lounge</option>
+            <option value="https://dorognoe.hostingradio.ru/radio">Дорожное Радио</option>
+        </select>
+
+        <div class="volume-container">
+            <input type="range" min="0" max="1" step="0.01" value="0.7" oninput="changeVolume(this.value)">
+        </div>
+    </div>
+
+    <audio id="radio-core" crossorigin="anonymous"></audio>
+
+<script>
+    const audio = document.getElementById('radio-core');
+    const btnIcon = document.getElementById('play-icon');
+    const status = document.getElementById('status-text');
+    const viz = document.getElementById('viz');
+    const stationSelect = document.getElementById('station-select');
+    const stationTitle = document.getElementById('station-name');
+    const mainTitle = document.getElementById('main-title');
+    const root = document.documentElement;
+
+    const themes = {
+        "Радио Рекорд":   { accent: "#0077ff", blob1: "#0077ff", blob2: "#00d4ff" },
+        "Русское Радио": { accent: "#ffcc00", blob1: "#ffcc00", blob2: "#ff5500" },
+        "Новое Радио":   { accent: "#ff0044", blob1: "#ff0044", blob2: "#6a11cb" },
+        "Record Lounge":  { accent: "#a18cd1", blob1: "#fbc2eb", blob2: "#a18cd1" },
+        "Дорожное Радио": { accent: "#ff9900", blob1: "#ff9900", blob2: "#ffee00" }
+    };
+
+    function applyTheme(name) {
+        const theme = themes[name] || themes["Радио Рекорд"];
+        root.style.setProperty('--accent', theme.accent);
+        root.style.setProperty('--accent-glow', theme.accent + '4d');
+        root.style.setProperty('--blob-1', theme.blob1);
+        root.style.setProperty('--blob-2', theme.blob2);
+        
+        // Опционально: можно менять цвет текста "Спутник" под акцент (с низкой прозрачностью)
+        mainTitle.style.color = theme.accent + '26'; // 15% прозрачности
+    }
+
+    function togglePlay() {
+        if (audio.paused) {
+            audio.src = stationSelect.value;
+            audio.play().then(() => updateUI(true)).catch(() => status.innerText = "ОШИБКА");
+        } else {
+            audio.pause();
+            audio.src = ''; 
+            updateUI(false);
+        }
+    }
+
+    function changeStation() {
+        const wasPlaying = !audio.paused;
+        const name = stationSelect.options[stationSelect.selectedIndex].text;
+        stationTitle.innerText = name;
+        applyTheme(name);
+        
+        if (wasPlaying) {
+            audio.pause();
+            audio.src = stationSelect.value;
+            audio.play().then(() => updateUI(true));
+        } else {
+            status.innerText = "СТАНЦИЯ ВЫБРАНА";
+        }
+    }
+
+    function updateUI(isPlaying) {
+        btnIcon.innerHTML = isPlaying 
+            ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' 
+            : '<path d="M8 5v14l11-7z"/>';
+        status.innerText = isPlaying ? "В ПРЯМОМ ЭФИРЕ" : "ПАУЗА";
+        isPlaying ? viz.classList.add('playing') : viz.classList.remove('playing');
+    }
+
+    function changeVolume(val) { audio.volume = val; }
+
+    window.onkeydown = (e) => { if(e.code === 'Space') { e.preventDefault(); togglePlay(); } };
+
+    window.onload = () => {
+        applyTheme("Радио Рекорд");
+        audio.volume = 0.7;
+    };
+
+    audio.onwaiting = () => status.innerText = "ЗАГРУЗКА...";
+    audio.onplaying = () => status.innerText = "В ПРЯМОМ ЭФИРЕ";
+</script>
+</body>
+</html>
